@@ -32,7 +32,7 @@ export default class SignatureRequestOriginal extends Component {
     requesterAddress: PropTypes.string,
     sign: PropTypes.func.isRequired,
     txData: PropTypes.object.isRequired,
-    domainMetadata: PropTypes.object,
+    subjectMetadata: PropTypes.object,
     hardwareWalletRequiresConnection: PropTypes.bool,
     isLedgerWallet: PropTypes.bool,
     nativeCurrency: PropTypes.string.isRequired,
@@ -121,11 +121,11 @@ export default class SignatureRequestOriginal extends Component {
   };
 
   renderOriginInfo = () => {
-    const { txData, domainMetadata } = this.props;
+    const { txData, subjectMetadata } = this.props;
     const { t } = this.context;
 
     const originMetadata = txData.msgParams.origin
-      ? domainMetadata?.[txData.msgParams.origin]
+      ? subjectMetadata?.[txData.msgParams.origin]
       : null;
 
     return (

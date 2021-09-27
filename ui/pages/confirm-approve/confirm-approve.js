@@ -25,7 +25,7 @@ import {
   transactionFeeSelector,
   txDataSelector,
   getCurrentCurrency,
-  getDomainMetadata,
+  getSubjectMetadata,
   getUseNonceField,
   getCustomNonceValue,
   getNextSuggestedNonce,
@@ -57,7 +57,7 @@ export default function ConfirmApprove() {
   const currentCurrency = useSelector(getCurrentCurrency);
   const nativeCurrency = useSelector(getNativeCurrency);
   const currentNetworkTxList = useSelector(currentNetworkTxListSelector);
-  const domainMetadata = useSelector(getDomainMetadata);
+  const subjectMetadata = useSelector(getSubjectMetadata);
   const tokens = useSelector(getTokens);
   const useNonceField = useSelector(getUseNonceField);
   const nextNonce = useSelector(getNextSuggestedNonce);
@@ -146,7 +146,7 @@ export default function ConfirmApprove() {
   const { origin } = transaction;
   const formattedOrigin = origin || '';
 
-  const { icon: siteImage = '' } = domainMetadata[origin] || {};
+  const { icon: siteImage = '' } = subjectMetadata[origin] || {};
 
   const tokensText = `${Number(tokenAmount)} ${tokenSymbol}`;
   const tokenBalance = tokenTrackerBalance

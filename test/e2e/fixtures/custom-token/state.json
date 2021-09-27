@@ -78,9 +78,7 @@
       "seedPhraseBackedUp": true
     },
     "PermissionsController": {
-      "domains": {},
-      "permissionsDescriptions": {},
-      "permissionsRequests": []
+      "subjects": {}
     },
     "PreferencesController": {
       "completedOnboarding": true,

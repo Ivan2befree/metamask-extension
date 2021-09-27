@@ -9,6 +9,7 @@ import createFilterMiddleware from 'eth-json-rpc-filters';
 import createSubscriptionManager from 'eth-json-rpc-filters/subscriptionManager';
 import { providerAsMiddleware } from 'eth-json-rpc-middleware';
 import KeyringController from 'eth-keyring-controller';
+import { errorCodes as rpcErrorCodes, ethErrors } from 'eth-rpc-errors';
 import { Mutex } from 'await-semaphore';
 import { stripHexPrefix } from 'ethereumjs-util';
 import log from 'loglevel';
@@ -18,7 +19,7 @@ import LatticeKeyring from 'eth-lattice-keyring';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import EthQuery from 'eth-query';
 import nanoid from 'nanoid';
-import { ethErrors } from 'eth-rpc-errors';
+
 import { captureException } from '@sentry/browser';
 import {
   AddressBookController,
@@ -35,6 +36,12 @@ import {
   AssetsContractController,
   CollectibleDetectionController,
 } from '@metamask/controllers';
+import {
+  PermissionController,
+  SubjectMetadataController,
+  CaveatMutatorOperation,
+} from '@metamask/snap-controllers';
+
 import { TRANSACTION_STATUSES } from '../../shared/constants/transaction';
 import {
   GAS_API_BASE_URL,
@@ -46,6 +53,10 @@ import {
   DEVICE_NAMES,
   KEYRING_TYPES,
 } from '../../shared/constants/hardware-wallets';
+import {
+  CaveatTypes,
+  RestrictedMethods,
+} from '../../shared/constants/permissions';
 import { UI_NOTIFICATIONS } from '../../shared/notifications';
 import { toChecksumHexAddress } from '../../shared/modules/hexstring-utils';
 import { MILLISECOND } from '../../shared/constants/time';
@@ -76,16 +87,24 @@ import PersonalMessageManager from './lib/personal-message-manager';
 import TypedMessageManager from './lib/typed-message-manager';
 import TransactionController from './controllers/transactions';
 import DetectTokensController from './controllers/detect-tokens';
+import PermissionsLogController from './controllers/permissions/permissionsLog';
 import SwapsController from './controllers/swaps';
-import { PermissionsController } from './controllers/permissions';
 import { NOTIFICATION_NAMES } from './controllers/permissions/enums';
-import getRestrictedMethods from './controllers/permissions/restrictedMethods';
 import nodeify from './lib/nodeify';
 import accountImporter from './account-import-strategies';
 import seedPhraseVerifier from './lib/seed-phrase-verifier';
 import MetaMetricsController from './controllers/metametrics';
 import { segment } from './lib/segment';
 import createMetaRPCHandler from './lib/createMetaRPCHandler';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from './permissions/specifications';
+import {
+  getPermittedAccountsByOrigin,
+  getChangedAccounts,
+} from './permissions/selectors';
 
 export const METAMASK_CONTROLLER_EVENTS = {
   // Fired after state changes that impact the extension badge (unapproved msg count)
@@ -454,24 +473,59 @@ export default class MetamaskController extends EventEmitter {
     this.keyringController.on('unlock', () => this._onUnlock());
     this.keyringController.on('lock', () => this._onLock());
 
-    this.permissionsController = new PermissionsController(
-      {
-        approvals: this.approvalController,
+    // Used by the PermissionController
+    const getIdentities = () =>
+      this.preferencesController.store.getState().identities;
+
+    this.permissionController = new PermissionController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PermissionController',
+        allowedActions: [
+          'ApprovalController:addRequest',
+          'ApprovalController:hasRequest',
+          'ApprovalController:acceptRequest',
+          'ApprovalController:rejectRequest',
+        ],
+      }),
+      state: initState.PermissionController,
+      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      permissionSpecifications: getPermissionSpecifications({
+        getIdentities,
         getKeyringAccounts: this.keyringController.getAccounts.bind(
           this.keyringController,
         ),
-        getRestrictedMethods,
-        getUnlockPromise: this.appStateController.getUnlockPromise.bind(
-          this.appStateController,
-        ),
-        isUnlocked: this.isUnlocked.bind(this),
-        notifyDomain: this.notifyConnections.bind(this),
-        notifyAllDomains: this.notifyAllConnections.bind(this),
-        preferences: this.preferencesController.store,
-      },
-      initState.PermissionsController,
-      initState.PermissionsMetadata,
-    );
+      }),
+      unrestrictedMethods,
+    });
+
+    this.permissionLogController = new PermissionsLogController({
+      restrictedMethods: Object.keys(RestrictedMethods),
+    });
+
+    /**
+     * @param {string} origin - The origin whose exposed accounts to retrieve.
+     */
+    this.getPermittedAccounts = async (origin) => {
+      try {
+        return await this.permissionController.executeRestrictedMethod(
+          origin,
+          RestrictedMethods.eth_accounts,
+        );
+      } catch (error) {
+        if (error.code === rpcErrorCodes.provider.unauthorized) {
+          return [];
+        }
+        throw error;
+      }
+    };
+
+    this.subjectMetadataController = new SubjectMetadataController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SubjectMetadataController',
+      }),
+      state: initState.SubjectMetadataController,
+      subjectCacheLimit: 100,
+    });
 
     this.detectTokensController = new DetectTokensController({
       preferences: this.preferencesController,
@@ -508,9 +562,7 @@ export default class MetamaskController extends EventEmitter {
     this.txController = new TransactionController({
       initState:
         initState.TransactionController || initState.TransactionManager,
-      getPermittedAccounts: this.permissionsController.getAccounts.bind(
-        this.permissionsController,
-      ),
+      getPermittedAccounts: this.getPermittedAccounts.bind(this),
       getProviderConfig: this.networkController.getProviderConfig.bind(
         this.networkController,
       ),
@@ -670,8 +722,9 @@ export default class MetamaskController extends EventEmitter {
       AlertController: this.alertController.store,
       OnboardingController: this.onboardingController.store,
       IncomingTransactionsController: this.incomingTransactionsController.store,
-      PermissionsController: this.permissionsController.permissions,
-      PermissionsMetadata: this.permissionsController.store,
+      PermissionController: this.permissionController,
+      PermissionLog: this.permissionLogController.store,
+      PermissionMetadata: this.subjectMetadataController,
       ThreeBoxController: this.threeBoxController.store,
       NotificationController: this.notificationController,
       GasFeeController: this.gasFeeController,
@@ -702,8 +755,9 @@ export default class MetamaskController extends EventEmitter {
         OnboardingController: this.onboardingController.store,
         IncomingTransactionsController: this.incomingTransactionsController
           .store,
-        PermissionsController: this.permissionsController.permissions,
-        PermissionsMetadata: this.permissionsController.store,
+        PermissionController: this.permissionController,
+        PermissionLog: this.permissionLogController.store,
+        PermissionMetadata: this.subjectMetadataController,
         ThreeBoxController: this.threeBoxController.store,
         SwapsController: this.swapsController.store,
         EnsController: this.ensController.store,
@@ -717,6 +771,12 @@ export default class MetamaskController extends EventEmitter {
       controllerMessenger: this.controllerMessenger,
     });
     this.memStore.subscribe(this.sendUpdate.bind(this));
+
+    // TODO:permissions remove
+    if (process.env.METAMASK_DEBUG) {
+      globalThis.getMemState = () => this.memStore.getState();
+      globalThis.permissions = this.permissionController;
+    }
 
     const password = process.env.CONF?.PASSWORD;
     if (
@@ -738,8 +798,83 @@ export default class MetamaskController extends EventEmitter {
       );
     });
 
+    this.setupControllerEventSubscriptions();
+
     // TODO:LegacyProvider: Delete
     this.publicConfigStore = this.createPublicConfigStore();
+  }
+
+  /**
+   * TODO:permissions add docs, use enums
+   */
+  setupControllerEventSubscriptions() {
+    const getCurrentAccounts = async (origin, newAccounts) => {
+      return newAccounts.length < 2
+        ? newAccounts
+        : await this.getPermittedAccounts(origin);
+    };
+
+    const handleAccountsChange = async (origin, newAccounts) => {
+      this.notifyConnections(origin, {
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: await getCurrentAccounts(origin, newAccounts),
+      });
+      this.permissionLogController.updateAccountsHistory(origin, newAccounts);
+    };
+
+    // This handles account changes whenever the selected address changes.
+    let lastSelectedAddress;
+    this.preferencesController.store.subscribe(async ({ selectedAddress }) => {
+      if (selectedAddress && selectedAddress !== lastSelectedAddress) {
+        lastSelectedAddress = selectedAddress;
+        const permittedAccountsMap = getPermittedAccountsByOrigin(
+          this.permissionController.state,
+        );
+
+        for (const [origin, accounts] of permittedAccountsMap.entries()) {
+          if (accounts.includes(selectedAddress)) {
+            handleAccountsChange(origin, accounts);
+          }
+        }
+      }
+    });
+
+    // TODO:permissions Could we use this?
+    // This handles account changes whenever the extension is unlocked.
+    // this.on('unlock', async () => {
+    //   const permittedAccountsMap = getPermittedAccountsByOrigin(
+    //     this.permissionController.state,
+    //   );
+
+    //   for (const [origin, accounts] of permittedAccountsMap.entries()) {
+    //     this.notifyConnections(origin, {
+    //       method: NOTIFICATION_NAMES.unlockStateChanged,
+    //       params: {
+    //         isUnlocked: true,
+    //         accounts: await getCurrentAccounts(origin, accounts),
+    //       },
+    //     });
+    //   }
+    // });
+
+    // This handles account changes every time relevant permission state
+    // changes, for any reason.
+    this.controllerMessenger.subscribe(
+      'PermissionController:stateChange',
+      async (currentValue, previousValue) => {
+        if (this.isUnlocked()) {
+          const changedAccounts = getChangedAccounts(
+            currentValue,
+            previousValue,
+          );
+
+          for (const [origin, accounts] of changedAccounts.entries()) {
+            handleAccountsChange(origin, accounts);
+          }
+        }
+      },
+      getPermittedAccountsByOrigin,
+    );
   }
 
   /**
@@ -759,7 +894,7 @@ export default class MetamaskController extends EventEmitter {
           const selectedAddress = this.preferencesController.getSelectedAddress();
           return selectedAddress ? [selectedAddress] : [];
         } else if (this.isUnlocked()) {
-          return await this.permissionsController.getAccounts(origin);
+          return await this.getPermittedAccounts(origin);
         }
         return []; // changing this is a breaking change
       },
@@ -835,7 +970,7 @@ export default class MetamaskController extends EventEmitter {
     return {
       isUnlocked: this.isUnlocked(),
       ...this.getProviderNetworkState(),
-      accounts: await this.permissionsController.getAccounts(origin),
+      accounts: await this.getPermittedAccounts(origin),
     };
   }
 
@@ -888,7 +1023,7 @@ export default class MetamaskController extends EventEmitter {
       metaMetricsController,
       networkController,
       onboardingController,
-      permissionsController,
+      permissionController,
       preferencesController,
       swapsController,
       threeBoxController,
@@ -1204,29 +1339,86 @@ export default class MetamaskController extends EventEmitter {
       initializeThreeBox: nodeify(this.initializeThreeBox, this),
 
       // permissions
+      getApprovedAccounts: nodeify(this.getPermittedAccounts, this),
+      removePermissionsFor: permissionController.revokePermissions.bind(
+        permissionController,
+      ),
       approvePermissionsRequest: nodeify(
-        permissionsController.approvePermissionsRequest,
-        permissionsController,
+        permissionController.acceptPermissionsRequest,
+        permissionController,
       ),
       rejectPermissionsRequest: nodeify(
-        permissionsController.rejectPermissionsRequest,
-        permissionsController,
+        permissionController.rejectPermissionsRequest,
+        permissionController,
       ),
-      removePermissionsFor: permissionsController.removePermissionsFor.bind(
-        permissionsController,
-      ),
-      addPermittedAccount: nodeify(
-        permissionsController.addPermittedAccount,
-        permissionsController,
-      ),
-      removePermittedAccount: nodeify(
-        permissionsController.removePermittedAccount,
-        permissionsController,
-      ),
-      requestAccountsPermissionWithId: nodeify(
-        permissionsController.requestAccountsPermissionWithId,
-        permissionsController,
-      ),
+      requestAccountsPermissionWithId: nodeify(async (origin) => {
+        const [, { id }] = await permissionController.requestPermissions(
+          { origin },
+          {
+            eth_accounts: {},
+          },
+        );
+        return id;
+      }, this),
+      addPermittedAccount: (origin, account) => {
+        const existing = permissionController.getCaveat(
+          origin,
+          RestrictedMethods.eth_accounts,
+          CaveatTypes.restrictReturnedAccounts,
+        );
+        if (!existing) {
+          throw new Error(
+            `eth_accounts permission for origin "${origin}" unexpectedly missing caveat.`,
+          );
+        }
+
+        if (existing.value.includes(account)) {
+          throw new Error(
+            `eth_accounts permission for origin "${origin}" already permits account "${account}"`,
+          );
+        }
+        permissionController.updateCaveat(
+          origin,
+          RestrictedMethods.eth_accounts,
+          CaveatTypes.restrictReturnedAccounts,
+          [...existing.value, account],
+        );
+      },
+      removePermittedAccount: (origin, account) => {
+        const existing = permissionController.getCaveat(
+          origin,
+          RestrictedMethods.eth_accounts,
+          CaveatTypes.restrictReturnedAccounts,
+        );
+        if (!existing) {
+          throw new Error(
+            `eth_accounts permission for origin "${origin}" unexpectedly missing caveat.`,
+          );
+        }
+
+        if (!existing.value.includes(account)) {
+          throw new Error(
+            `eth_accounts permission for origin "${origin}" already does not permit account "${account}"`,
+          );
+        }
+
+        const remainingAccounts = existing.value.filter(
+          (existingAccount) => existingAccount !== account,
+        );
+        if (remainingAccounts.length === 0) {
+          permissionController.revokePermission(
+            origin,
+            RestrictedMethods.eth_accounts,
+          );
+        } else {
+          permissionController.updateCaveat(
+            origin,
+            RestrictedMethods.eth_accounts,
+            CaveatTypes.restrictReturnedAccounts,
+            remainingAccounts,
+          );
+        }
+      },
 
       // swaps
       fetchAndSetQuotes: nodeify(
@@ -1428,7 +1620,7 @@ export default class MetamaskController extends EventEmitter {
       this.preferencesController.setAddresses([]);
 
       // clear permissions
-      this.permissionsController.clearPermissions();
+      this.permissionController.clearState();
 
       // clear accounts in accountTracker
       this.accountTracker.clearAccounts();
@@ -1917,6 +2109,37 @@ export default class MetamaskController extends EventEmitter {
   }
 
   /**
+   * Stops exposing the account with the specified address to all third parties.
+   * Exposed accounts are stored in caveats of the eth_accounts permission. This
+   * method uses `PermissionController.updatePermissionsByCaveat` to
+   * remove the specified address from every eth_accounts permission. If a
+   * permission only included this address, the permission is revoked entirely.
+   *
+   * @param {string} targetAddress - The address of the account to stop exposing
+   * to third parties.
+   */
+  removeAllAccountPermissions(targetAddress) {
+    this.permissionController.updatePermissionsByCaveat(
+      CaveatTypes.restrictReturnedAccounts,
+      (existingAccounts) => {
+        const newAccounts = existingAccounts.filter(
+          (address) => address !== targetAddress,
+        );
+
+        if (newAccounts.length === existingAccounts.length) {
+          return { operation: CaveatMutatorOperation.noop };
+        } else if (newAccounts.length > 0) {
+          return {
+            operation: CaveatMutatorOperation.updateValue,
+            value: newAccounts,
+          };
+        }
+        return { operation: CaveatMutatorOperation.revokePermission };
+      },
+    );
+  }
+
+  /**
    * Removes an account from state / storage.
    *
    * @param {string[]} address - A hex address
@@ -1924,7 +2147,7 @@ export default class MetamaskController extends EventEmitter {
    */
   async removeAccount(address) {
     // Remove all associated permissions
-    await this.permissionsController.removeAllAccountPermissions(address);
+    this.removeAllAccountPermissions(address);
     // Remove account from the preferences controller
     this.preferencesController.removeAddress(address);
     // Remove account from the account tracker controller
@@ -2594,10 +2817,12 @@ export default class MetamaskController extends EventEmitter {
    */
   setupProviderConnection(outStream, sender, isInternal) {
     const origin = isInternal ? 'metamask' : new URL(sender.url).origin;
-    let extensionId;
     if (sender.id !== this.extension.runtime.id) {
-      extensionId = sender.id;
+      this.subjectMetadataController.addSubjectMetadata(origin, {
+        extensionId: sender.id,
+      });
     }
+
     let tabId;
     if (sender.tab && sender.tab.id) {
       tabId = sender.tab.id;
@@ -2606,7 +2831,6 @@ export default class MetamaskController extends EventEmitter {
     const engine = this.setupProviderEngine({
       origin,
       location: sender.url,
-      extensionId,
       tabId,
       isInternal,
     });
@@ -2635,17 +2859,10 @@ export default class MetamaskController extends EventEmitter {
    * @param {Object} options - Provider engine options
    * @param {string} options.origin - The origin of the sender
    * @param {string} options.location - The full URL of the sender
-   * @param {extensionId} [options.extensionId] - The extension ID of the sender, if the sender is an external extension
    * @param {tabId} [options.tabId] - The tab ID of the sender - if the sender is within a tab
    * @param {boolean} [options.isInternal] - True if called for a connection to an internal process
    **/
-  setupProviderEngine({
-    origin,
-    location,
-    extensionId,
-    tabId,
-    isInternal = false,
-  }) {
+  setupProviderEngine({ origin, location, tabId, isInternal = false }) {
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
     const { provider, blockTracker } = this;
@@ -2676,40 +2893,51 @@ export default class MetamaskController extends EventEmitter {
         registerOnboarding: this.onboardingController.registerOnboarding,
       }),
     );
+    engine.push(this.permissionLogController.createMiddleware());
     engine.push(
       createMethodMiddleware({
         origin,
+
+        // Miscellaneous
+        addSubjectMetadata: this.subjectMetadataController.addSubjectMetadata.bind(
+          this.subjectMetadataController,
+          origin,
+        ),
         getProviderState: this.getProviderState.bind(this),
-        sendMetrics: this.metaMetricsController.trackEvent.bind(
-          this.metaMetricsController,
+        getUnlockPromise: this.appStateController.getUnlockPromise.bind(
+          this.appStateController,
         ),
         handleWatchAssetRequest: this.tokensController.watchAsset.bind(
           this.tokensController,
         ),
-        getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
-          this.alertController,
-        ),
-        setWeb3ShimUsageRecorded: this.alertController.setWeb3ShimUsageRecorded.bind(
-          this.alertController,
-        ),
-        findCustomRpcBy: this.findCustomRpcBy.bind(this),
-        getCurrentChainId: this.networkController.getCurrentChainId.bind(
-          this.networkController,
-        ),
         requestUserApproval: this.approvalController.addAndShowApprovalRequest.bind(
           this.approvalController,
         ),
-        updateRpcTarget: ({ rpcUrl, chainId, ticker, nickname }) => {
-          this.networkController.setRpcTarget(
-            rpcUrl,
-            chainId,
-            ticker,
-            nickname,
-          );
-        },
-        setProviderType: this.networkController.setProviderType.bind(
-          this.networkController,
+        sendMetrics: this.metaMetricsController.trackEvent.bind(
+          this.metaMetricsController,
         ),
+
+        // Permission-related
+        getAccounts: this.getPermittedAccounts.bind(this, origin),
+        getPermissions: this.permissionController.getPermissions.bind(
+          this.permissionController,
+          origin,
+        ),
+        hasPermission: this.permissionController.hasPermission.bind(
+          this.permissionController,
+          origin,
+        ),
+        requestAccountsPermission: this.permissionController.requestPermissions.bind(
+          this.permissionController,
+          { origin },
+          { eth_accounts: {} },
+        ),
+        requestPermissions: this.permissionController.requestPermissions.bind(
+          this.permissionController,
+          { origin },
+        ),
+
+        // Custom RPC-related
         addCustomRpc: async ({
           chainId,
           blockExplorerUrl,
@@ -2727,6 +2955,29 @@ export default class MetamaskController extends EventEmitter {
             },
           );
         },
+        findCustomRpcBy: this.findCustomRpcBy.bind(this),
+        getCurrentChainId: this.networkController.getCurrentChainId.bind(
+          this.networkController,
+        ),
+        setProviderType: this.networkController.setProviderType.bind(
+          this.networkController,
+        ),
+        updateRpcTarget: ({ rpcUrl, chainId, ticker, nickname }) => {
+          this.networkController.setRpcTarget(
+            rpcUrl,
+            chainId,
+            ticker,
+            nickname,
+          );
+        },
+
+        // Web3 shim-related
+        getWeb3ShimUsageState: this.alertController.getWeb3ShimUsageState.bind(
+          this.alertController,
+        ),
+        setWeb3ShimUsageRecorded: this.alertController.setWeb3ShimUsageRecorded.bind(
+          this.alertController,
+        ),
       }),
     );
     // filter and subscription polyfills
@@ -2735,7 +2986,9 @@ export default class MetamaskController extends EventEmitter {
     if (!isInternal) {
       // permissions
       engine.push(
-        this.permissionsController.createMiddleware({ origin, extensionId }),
+        this.permissionController.createPermissionMiddleware({
+          origin,
+        }),
       );
     }
     // forward to metamask primary provider
@@ -2822,7 +3075,7 @@ export default class MetamaskController extends EventEmitter {
    * Ignores unknown origins.
    *
    * @param {string} origin - The connection's origin string.
-   * @param {any} payload - The event payload.
+   * @param {unknown} payload - The event payload.
    */
   notifyConnections(origin, payload) {
     const connections = this.connections[origin];
@@ -2847,7 +3100,7 @@ export default class MetamaskController extends EventEmitter {
    * The caller is responsible for ensuring that only permitted notifications
    * are sent.
    *
-   * @param {any} payload - The event payload, or payload getter function.
+   * @param {unknown} payload - The event payload, or payload getter function.
    */
   notifyAllConnections(payload) {
     const getPayload =
@@ -2898,7 +3151,7 @@ export default class MetamaskController extends EventEmitter {
         method: NOTIFICATION_NAMES.unlockStateChanged,
         params: {
           isUnlocked: true,
-          accounts: await this.permissionsController.getAccounts(origin),
+          accounts: await this.getPermittedAccounts(origin),
         },
       };
     });
