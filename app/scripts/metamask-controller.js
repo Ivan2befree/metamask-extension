@@ -481,10 +481,10 @@ export default class MetamaskController extends EventEmitter {
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
-          'ApprovalController:addRequest',
-          'ApprovalController:hasRequest',
-          'ApprovalController:acceptRequest',
-          'ApprovalController:rejectRequest',
+          `${this.approvalController.name}:addRequest`,
+          `${this.approvalController.name}:hasRequest`,
+          `${this.approvalController.name}:acceptRequest`,
+          `${this.approvalController.name}:rejectRequest`,
         ],
       }),
       state: initState.PermissionController,
@@ -523,6 +523,7 @@ export default class MetamaskController extends EventEmitter {
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
+        allowedActions: [`${this.permissionController.name}:hasPermissions`],
       }),
       state: initState.SubjectMetadataController,
       subjectCacheLimit: 100,
@@ -2905,7 +2906,7 @@ export default class MetamaskController extends EventEmitter {
 
         // Permission-related
         getAccounts: this.getPermittedAccounts.bind(this, origin),
-        getPermissions: this.permissionController.getPermissions.bind(
+        getPermissionsForOrigin: this.permissionController.getPermissions.bind(
           this.permissionController,
           origin,
         ),
@@ -2918,7 +2919,7 @@ export default class MetamaskController extends EventEmitter {
           { origin },
           { eth_accounts: {} },
         ),
-        requestPermissions: this.permissionController.requestPermissions.bind(
+        requestPermissionsForOrigin: this.permissionController.requestPermissions.bind(
           this.permissionController,
           { origin },
         ),

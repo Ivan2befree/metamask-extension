@@ -1,5 +1,5 @@
-import { ethErrors } from 'eth-rpc-errors';
 import { permissionRpcMethods } from '@metamask/snap-controllers';
+import { ethErrors } from 'eth-rpc-errors';
 import { UNSUPPORTED_RPC_METHODS } from '../../../../shared/constants/network';
 import localHandlers from './handlers';
 
@@ -23,7 +23,7 @@ const handlerMap = allHandlers.reduce((map, handler) => {
  * @returns {(req: Object, res: Object, next: Function, end: Function) => void}
  */
 export default function createMethodMiddleware(hooks) {
-  return function methodMiddleware(req, res, next, end) {
+  return async function methodMiddleware(req, res, next, end) {
     // Reject unsupported methods.
     if (UNSUPPORTED_RPC_METHODS.has(req.method)) {
       return end(ethErrors.rpc.methodNotSupported());
@@ -32,7 +32,18 @@ export default function createMethodMiddleware(hooks) {
     const handler = handlerMap.get(req.method);
     if (handler) {
       const { implementation, hookNames } = handler;
-      return implementation(req, res, next, end, selectHooks(hooks, hookNames));
+      try {
+        // Implementations may or may not be async, so we must await them.
+        return await implementation(
+          req,
+          res,
+          next,
+          end,
+          selectHooks(hooks, hookNames),
+        );
+      } catch (error) {
+        return end(error);
+      }
     }
 
     return next();

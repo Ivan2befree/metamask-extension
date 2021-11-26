@@ -2602,14 +2602,14 @@
     yargs "^17.0.1"
 
 "@metamask/contract-metadata@^1.28.0", "@metamask/contract-metadata@^1.29.0", "@metamask/contract-metadata@^1.30.0":
-  version "1.30.0"
-  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.30.0.tgz#fa8e1b0c3e7aaa963986088f691fb553ffbe3904"
-  integrity sha512-b2usYW/ptQYnE6zhUmr4T+nvOAQJK5ABcpKudyQANpy4K099elpv4aN0WcrcOcwV99NHOdMzFP3ZuG0HoAyOBQ==
+  version "1.31.0"
+  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.31.0.tgz#9e3e46de7a955ea1ca61f7db20d9a17b5e91d3d0"
+  integrity sha512-4FBJkg/vDiYp/thIiZknxrJ0lfsj2eWIPenwlNZmoqOhoL4VqhK5eKWxi+EuGMvv9taP+QBRk6Key7wC1uL78A==
 
-"@metamask/controllers@^20.1.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-20.1.0.tgz#1d8386dc22d14f9fd9feb8b3cc8314d663587550"
-  integrity sha512-Z/7uLGXZWbCBbtCybR3jo1bx3mcvZRUSm1i43od4dnJoQo2+Veq4ePrFVgPKS3WtLIM/hzZuI7UTAQ9HNX9aew==
+"@metamask/controllers@^17.0.0":
+  version "17.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-17.0.0.tgz#7ef00b4f7583d8075115e8a2f074d7b66646bbe8"
+  integrity sha512-myPlAk8SpNm5SwHHKGgm2XDLP4bxNR2UsKoQlYtV7bJq3l8FV1agSFwHBwDhg61/52Xvqdqy+1YDVdV3kOwPgg==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -2643,10 +2643,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@^20.0.0":
-  version "20.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-20.0.0.tgz#5c3fd293e1c8d3de964bbbfadbd73d637d83a1a8"
-  integrity sha512-H7ql719730+KCFRvAxWVKe3PvEabKgA9b+0+k4/nRA2Xvb7Pe3BlQ4lgt44wOFKDqdWyvwvH7mgNTAhDzBu4OA==
+"@metamask/controllers@^20.1.0":
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-20.1.0.tgz#1d8386dc22d14f9fd9feb8b3cc8314d663587550"
+  integrity sha512-Z/7uLGXZWbCBbtCybR3jo1bx3mcvZRUSm1i43od4dnJoQo2+Veq4ePrFVgPKS3WtLIM/hzZuI7UTAQ9HNX9aew==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
@@ -2815,16 +2815,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/snap-controllers@./metamask-snap-controllers-0.3.1.tgz":
-  version "0.3.1"
-  resolved "./metamask-snap-controllers-0.3.1.tgz#b03e71624f1c2b5b897f8b2e7e3d120320908829"
+"@metamask/snap-controllers@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snap-controllers/-/snap-controllers-0.4.0.tgz#20647f061e20263f462347c2bf0d59f7aedd6898"
+  integrity sha512-pZ9S72Y9u2KBrMdzFauz6t4LIxJBqcT6uzxstxdY8y0qroeeTJum6Z0L9HFkVSsTLP3JMyVSDD6FwRsHIwXewg==
   dependencies:
     "@metamask/controllers" "^17.0.0"
     "@metamask/object-multiplex" "^1.1.0"
     "@metamask/obs-store" "^6.0.2"
     "@metamask/post-message-stream" "4.0.0"
     "@metamask/safe-event-emitter" "^2.0.0"
-    "@metamask/snap-workers" "^0.3.1"
+    "@metamask/snap-workers" "^0.4.0"
     "@types/deep-freeze-strict" "^1.1.0"
     deep-freeze-strict "^1.1.1"
     eth-rpc-errors "^4.0.2"
@@ -2835,10 +2836,10 @@
     nanoid "^3.1.28"
     pump "^3.0.0"
 
-"@metamask/snap-workers@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snap-workers/-/snap-workers-0.3.1.tgz#19f23a22a57e6bc7a99ddbf9b04650892a220a72"
-  integrity sha512-hOLSKx6Ar2IO1ZNm8/7HzIRRBZ6o/HzzThrOeRXVjjNKkk9N9lwcLhsPBRAjxaMVD8T+Nmv9hrkYxvmJSACxnA==
+"@metamask/snap-workers@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snap-workers/-/snap-workers-0.4.0.tgz#ba561eb15a7b7e7b353738ad5635a68c03cf64b0"
+  integrity sha512-usPEnwRXIwaDc06f8Jis4/CxXzmZJpPOLucOMqkxGAAz3hepA/T5fbfus12sibo5h6QsG0VTqBQ5AqKFlTr0zQ==
 
 "@metamask/test-dapp@^4.0.1":
   version "4.0.1"
@@ -14510,9 +14511,9 @@ human-standard-collectible-abi@^1.0.2:
   integrity sha512-nD3ITUuSAIBgkaCm9J2BGwlHL8iEzFjJfTleDAC5Wi8RBJEXXhxV0JeJjd95o+rTwf98uTE5MW+VoBKOIYQh0g==
 
 human-standard-multi-collectible-abi@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/human-standard-multi-collectible-abi/-/human-standard-multi-collectible-abi-1.0.3.tgz#be5896b13f8622289cff70040e478366931bf3d7"
-  integrity sha512-1VXqats7JQqDZozLKhpmFG0S33hVePrkLNRJNKfJTxewR0heYKjSoz72kqs+6O/Tywi0zW4fWe7dfTaPX4j7gQ==
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/human-standard-multi-collectible-abi/-/human-standard-multi-collectible-abi-1.0.4.tgz#981625bc1a6bea5fef90567f9e12c11581fac497"
+  integrity sha512-ylR9JDXClDJAxWD/QJxsjXJJdLTUmhipTquMAgrfybXL3qX3x3P/vmKg92A7qFu7SqVOf2hyv5dA8vX0j+0Thg==
 
 human-standard-token-abi@^1.0.2:
   version "1.0.2"
