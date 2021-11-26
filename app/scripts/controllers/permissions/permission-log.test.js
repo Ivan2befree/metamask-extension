@@ -18,9 +18,10 @@ const {
 
 let clock;
 
-const initPermLog = () => {
+const initPermLog = (initState = {}) => {
   return new PermissionLogController({
     restrictedMethods: RESTRICTED_METHODS,
+    initState,
   });
 };
 
@@ -665,6 +666,61 @@ describe('PermissionLogController', function () {
       assert.deepEqual(
         permHistory,
         EXPECTED_HISTORIES.case3[1],
+        'should have expected history',
+      );
+    });
+  });
+
+  describe('updateAccountsHistory', function () {
+    beforeEach(function () {
+      initClock();
+    });
+
+    afterEach(function () {
+      tearDownClock();
+    });
+
+    it('does nothing if the list of accounts is empty', function () {
+      const permLog = initPermLog();
+      permLog.updateAccountsHistory('foo.com', []);
+
+      assert.deepEqual(
+        permLog.getHistory(),
+        {},
+        'should have expected history',
+      );
+    });
+
+    it('updates the account history', function () {
+      const permLog = initPermLog({
+        permissionHistory: {
+          'foo.com': {
+            [PERM_NAMES.eth_accounts]: {
+              accounts: {
+                '0x1': 1,
+              },
+              lastApproved: 1,
+            },
+          },
+        },
+      });
+
+      clock.tick(1);
+      permLog.updateAccountsHistory('foo.com', ['0x1', '0x2']);
+
+      assert.deepEqual(
+        permLog.getHistory(),
+        {
+          'foo.com': {
+            [PERM_NAMES.eth_accounts]: {
+              accounts: {
+                '0x1': 2,
+                '0x2': 2,
+              },
+              lastApproved: 1,
+            },
+          },
+        },
         'should have expected history',
       );
     });

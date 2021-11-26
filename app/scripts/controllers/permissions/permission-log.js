@@ -64,6 +64,7 @@ export default class PermissionLogController {
   /**
    * Updates the exposed account history for the given origin.
    * Sets the 'last seen' time to Date.now() for the given accounts.
+   * Does **not** update the 'lastApproved' time for the permission itself.
    * Returns if the accounts array is empty.
    *
    * @param {string} origin - The origin that the accounts are exposed to.
