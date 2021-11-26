@@ -2,7 +2,7 @@ import { constructPermission } from '@metamask/snap-controllers';
 import {
   CaveatTypes,
   RestrictedMethods,
-} from '../../../shared/constants/permissions';
+} from '../../../../shared/constants/permissions';
 
 /**
  * This file contains the specifications of the permissions and caveats

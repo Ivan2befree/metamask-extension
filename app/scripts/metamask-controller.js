@@ -100,11 +100,11 @@ import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
-} from './permissions/specifications';
+} from './controllers/permissions/specifications';
 import {
   getPermittedAccountsByOrigin,
   getChangedAccounts,
-} from './permissions/selectors';
+} from './controllers/permissions/selectors';
 
 export const METAMASK_CONTROLLER_EVENTS = {
   // Fired after state changes that impact the extension badge (unapproved msg count)
