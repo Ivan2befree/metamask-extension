@@ -773,12 +773,6 @@ export default class MetamaskController extends EventEmitter {
     });
     this.memStore.subscribe(this.sendUpdate.bind(this));
 
-    // TODO:permissions remove
-    if (process.env.METAMASK_DEBUG) {
-      globalThis.getMemState = () => this.memStore.getState();
-      globalThis.permissions = this.permissionController;
-    }
-
     const password = process.env.CONF?.PASSWORD;
     if (
       password &&
@@ -806,7 +800,16 @@ export default class MetamaskController extends EventEmitter {
   }
 
   /**
-   * TODO:permissions add docs, use enums
+   * Sets up BaseController V2 event subscriptions. Currently, this includes
+   * the subscriptions necessary to notify permission subjects of account
+   * changes.
+   *
+   * Some of the subscriptions in this method are ControllerMessenger selector
+   * event subscriptions. See the relevant @metamask/controllers documentation
+   * for more information.
+   *
+   * Note that account-related notifications emitted when the extension
+   * becomes unlocked are handled in MetaMaskController._onUnlock.
    */
   setupControllerEventSubscriptions() {
     const getCurrentAccounts = async (origin, newAccounts) => {
@@ -840,28 +843,10 @@ export default class MetamaskController extends EventEmitter {
       }
     });
 
-    // TODO:permissions Could we use this?
-    // This handles account changes whenever the extension is unlocked.
-    // this.on('unlock', async () => {
-    //   const permittedAccountsMap = getPermittedAccountsByOrigin(
-    //     this.permissionController.state,
-    //   );
-
-    //   for (const [origin, accounts] of permittedAccountsMap.entries()) {
-    //     this.notifyConnections(origin, {
-    //       method: NOTIFICATION_NAMES.unlockStateChanged,
-    //       params: {
-    //         isUnlocked: true,
-    //         accounts: await getCurrentAccounts(origin, accounts),
-    //       },
-    //     });
-    //   }
-    // });
-
     // This handles account changes every time relevant permission state
     // changes, for any reason.
     this.controllerMessenger.subscribe(
-      'PermissionController:stateChange',
+      `${this.permissionController.name}:stateChange`,
       async (currentValue, previousValue) => {
         if (this.isUnlocked()) {
           const changedAccounts = getChangedAccounts(
@@ -3143,8 +3128,9 @@ export default class MetamaskController extends EventEmitter {
   }
 
   /**
-   * Handle global unlock, triggered by KeyringController unlock.
-   * Notifies all connections that the extension is unlocked.
+   * Handle global application unlock.
+   * Notifies all connections that the extension is unlocked, and which
+   * account(s) are currently accessible, if any.
    */
   _onUnlock() {
     this.notifyAllConnections(async (origin) => {
@@ -3156,11 +3142,15 @@ export default class MetamaskController extends EventEmitter {
         },
       };
     });
+
+    // In the current implementation, this handler is triggered by a
+    // KeyringController event. Other controllers subscribe to the 'unlock'
+    // event of the MetaMaskController itself.
     this.emit('unlock');
   }
 
   /**
-   * Handle global lock, triggered by KeyringController lock.
+   * Handle global application lock.
    * Notifies all connections that the extension is locked.
    */
   _onLock() {
@@ -3170,6 +3160,10 @@ export default class MetamaskController extends EventEmitter {
         isUnlocked: false,
       },
     });
+
+    // In the current implementation, this handler is triggered by a
+    // KeyringController event. Other controllers subscribe to the 'lock'
+    // event of the MetaMaskController itself.
     this.emit('lock');
   }
 

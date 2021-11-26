@@ -4,20 +4,53 @@ import {
   RestrictedMethods,
 } from '../../../shared/constants/permissions';
 
-const CaveatFactories = {
+/**
+ * This file contains the specifications of the permissions and caveats
+ * that are recognized by our permission system. See the PermissionController
+ * README in @metamask/snap-controllers for details.
+ */
+
+/**
+ * The "keys" of all of permissions recognized by the PermissionController.
+ * Permission keys and names have distinct meanings in the permission system.
+ */
+const PermissionKeys = Object.freeze({
+  ...RestrictedMethods,
+});
+
+/**
+ * Factory functions for all caveat types recognized by the
+ * PermissionController.
+ */
+const CaveatFactories = Object.freeze({
   [CaveatTypes.restrictReturnedAccounts]: (accounts) => {
     return { type: CaveatTypes.restrictReturnedAccounts, value: accounts };
   },
-};
+});
 
-const PermissionKeys = {
-  ...RestrictedMethods,
-};
+/**
+ * A PreferencesController identity object.
+ *
+ * @typedef {Object} Identity
+ * @property {string} address - The address of the identity.
+ * @property {string} name - The name of the identity.
+ * @property {number} [lastSelected] - Unix timestamp of when the identity was
+ * last selected in the UI.
+ */
 
+/**
+ * Gets the specifications for all caveats that will be recognized by the
+ * PermissionController.
+ *
+ * @param {{
+ *   getIdentities: () => Record<string, Identity>,
+ * }} options - Options bag.
+ */
 export const getCaveatSpecifications = ({ getIdentities }) => {
   return {
     [CaveatTypes.restrictReturnedAccounts]: {
       type: CaveatTypes.restrictReturnedAccounts,
+
       decorator: (method, caveat) => {
         return async (args) => {
           const result = await method(args);
@@ -26,12 +59,22 @@ export const getCaveatSpecifications = ({ getIdentities }) => {
             .slice(0, 1);
         };
       },
+
       validator: (caveat, _origin, _target) =>
-        validateAccounts(caveat.value, getIdentities),
+        validateCaveatAccounts(caveat.value, getIdentities),
     },
   };
 };
 
+/**
+ * Gets the specifications for all permissions that will be recognized by the
+ * PermissionController.
+ *
+ * @param {{
+ *   getKeyringAccounts: () => Promise<string[]>,
+ *   getIdentities: () => Record<string, Identity>,
+ * }} options - Options bag.
+ */
 export const getPermissionSpecifications = ({
   getKeyringAccounts,
   getIdentities,
@@ -40,6 +83,7 @@ export const getPermissionSpecifications = ({
     [PermissionKeys.eth_accounts]: {
       targetKey: PermissionKeys.eth_accounts,
       allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
+
       factory: (permissionOptions, requestData) => {
         if (!requestData.approvedAccounts) {
           throw new Error(
@@ -56,6 +100,7 @@ export const getPermissionSpecifications = ({
           ],
         });
       },
+
       methodImplementation: async (_args) => {
         try {
           const accounts = await getKeyringAccounts();
@@ -83,11 +128,12 @@ export const getPermissionSpecifications = ({
             );
           });
         } catch (error) {
-          // TODO: What should we do with this error?
+          // TODO:permissions What should we do with this error?
           console.error(error);
           return [];
         }
       },
+
       validator: (permission, _origin, _target) => {
         const { caveats } = permission;
         if (
@@ -106,7 +152,16 @@ export const getPermissionSpecifications = ({
   };
 };
 
-function validateAccounts(accounts, getIdentities) {
+/**
+ * Validates the accounts associated with a caveat. In essence, ensures that
+ * the accounts value is an array of non-empty strings, and that each string
+ * corresponds to a PreferencesController identity.
+ *
+ * @param {string[]} accounts - The accounts associated with the caveat.
+ * @param {() => Record<string, Identity>} getIdentities - Gets all
+ * PreferencesController identities.
+ */
+function validateCaveatAccounts(accounts, getIdentities) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
       `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
@@ -129,7 +184,14 @@ function validateAccounts(accounts, getIdentities) {
   });
 }
 
-export const unrestrictedMethods = [
+/**
+ * All unrestricted methods recognized by the PermissionController.
+ * Unrestricted methods are ignored by the permission system, but every
+ * JSON-RPC request seen by the permission system must correspond to a
+ * restricted or unrestricted method, or the request will be rejected with a
+ * "method not found" error.
+ */
+export const unrestrictedMethods = Object.freeze([
   'eth_blockNumber',
   'eth_call',
   'eth_chainId',
@@ -187,4 +249,4 @@ export const unrestrictedMethods = [
   'wallet_watchAsset',
   'web3_clientVersion',
   'web3_sha3',
-];
+]);
