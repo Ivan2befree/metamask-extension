@@ -1,11 +1,10 @@
 module.exports = {
   displayName: 'strict',
-  collectCoverageFrom: [
-    '<rootDir>/app/scripts/controllers/permissions/permission-log.js',
-  ],
+  collectCoverageFrom: ['<rootDir>/app/scripts/controllers/permissions/*.js'],
   coverageDirectory: './jest-coverage/strict/',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
   coverageThreshold: {
+    // TODO:permissions add coverage for entire directory
     './app/scripts/controllers/permissions/permission-log.js': {
       branches: 100,
       functions: 100,
