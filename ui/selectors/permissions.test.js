@@ -258,7 +258,7 @@ describe('selectors', () => {
             ],
           },
         ],
-        permissionsHistory: {
+        permissionHistory: {
           'https://remix.ethereum.org': {
             eth_accounts: {
               accounts: {
@@ -394,7 +394,7 @@ describe('selectors', () => {
             name: 'Remix - Ethereum IDE',
           },
         },
-        permissionsHistory: {
+        permissionHistory: {
           'https://remix.ethereum.org': {
             eth_accounts: {
               accounts: {

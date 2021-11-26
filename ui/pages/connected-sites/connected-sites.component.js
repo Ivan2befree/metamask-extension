@@ -17,7 +17,6 @@ export default class ConnectedSites extends Component {
     accountLabel: PropTypes.string.isRequired,
     closePopover: PropTypes.func.isRequired,
     connectedSubjects: PropTypes.arrayOf(PropTypes.object).isRequired,
-    subjectHostCount: PropTypes.objectOf(PropTypes.number).isRequired,
     disconnectAllAccounts: PropTypes.func.isRequired,
     disconnectAccount: PropTypes.func.isRequired,
     getOpenMetamaskTabsIds: PropTypes.func.isRequired,
@@ -70,7 +69,6 @@ export default class ConnectedSites extends Component {
   renderConnectedSitesList() {
     return (
       <ConnectedSitesList
-        subjectHostCount={this.props.subjectHostCount}
         connectedSubjects={this.props.connectedSubjects}
         onDisconnect={this.setPendingDisconnect}
       />

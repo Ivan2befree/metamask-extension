@@ -64,7 +64,7 @@
       "seedPhraseBackedUp": false
     },
     "SubjectMetadata": {
-      "permissionsLog": [
+      "permissionActivityLog": [
         {
           "id": 1764280960,
           "method": "eth_requestAccounts",
@@ -87,7 +87,7 @@
           "success": true
         }
       ],
-      "permissionsHistory": {
+      "permissionHistory": {
         "http://127.0.0.1:8080": {
           "eth_accounts": {
             "accounts": {

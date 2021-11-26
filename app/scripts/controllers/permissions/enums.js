@@ -1,14 +1,4 @@
-export const APPROVAL_TYPE = 'wallet_requestPermissions';
-
 export const WALLET_PREFIX = 'wallet_';
-
-export const HISTORY_STORE_KEY = 'permissionsHistory';
-
-export const LOG_STORE_KEY = 'permissionsLog';
-
-export const METADATA_STORE_KEY = 'subjectMetadata';
-
-export const METADATA_CACHE_MAX_SIZE = 100;
 
 export const NOTIFICATION_NAMES = {
   accountsChanged: 'metamask_accountsChanged',
@@ -17,7 +7,9 @@ export const NOTIFICATION_NAMES = {
 };
 
 export const LOG_IGNORE_METHODS = [
+  'wallet_addEthereumChain',
   'wallet_registerOnboarding',
+  'wallet_switchEthereumChain',
   'wallet_watchAsset',
 ];
 
@@ -26,4 +18,7 @@ export const LOG_METHOD_TYPES = {
   internal: 'internal',
 };
 
+/**
+ * The permission activity log size limit.
+ */
 export const LOG_LIMIT = 100;

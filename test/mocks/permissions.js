@@ -1,24 +1,11 @@
-import { ethErrors, errorCodes } from 'eth-rpc-errors';
 import deepFreeze from 'deep-freeze-strict';
-
 import { CaveatTypes } from '../../shared/constants/permissions';
-import { NOTIFICATION_NAMES } from '../../app/scripts/controllers/permissions/enums';
 
 /**
- * README
- * This file contains three primary kinds of mocks:
- * - Mocks for initializing a permissions controller and getting a permissions
- * middleware
- * - Functions for getting various mock objects consumed or produced by
- * permissions controller methods
- * - Immutable mock values like Ethereum accounts and expected states
+ * This file contains mocks for the PermissionLogController tests.
  */
 
 export const noop = () => undefined;
-
-/**
- * Mock Permissions Controller and Middleware
- */
 
 const keyringAccounts = deepFreeze([
   '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
@@ -27,7 +14,7 @@ const keyringAccounts = deepFreeze([
   '0xcc74c7a59194e5d9268476955650d1e285be703c',
 ]);
 
-const DOMAINS = {
+const SUBJECTS = {
   a: { origin: 'https://foo.xyz', host: 'foo.xyz' },
   b: { origin: 'https://bar.abc', host: 'bar.abc' },
   c: { origin: 'https://baz.def', host: 'baz.def' },
@@ -80,18 +67,6 @@ const CAVEATS = {
  */
 const PERMS = {
   /**
-   * The argument to approvePermissionsRequest
-   * @param {string} id - The rpc-cap permissions request id.
-   * @param {Object} permissions - The approved permissions, request-formatted.
-   */
-  approvedRequest: (id, permissions = {}) => {
-    return {
-      permissions: { ...permissions },
-      metadata: { id },
-    };
-  },
-
-  /**
    * Requested permissions objects, as passed to wallet_requestPermissions.
    */
   requests: {
@@ -114,32 +89,6 @@ const PERMS = {
      */
     does_not_exist: () => {
       return { does_not_exist: {} };
-    },
-  },
-
-  /**
-   * Finalized permission requests, as returned by finalizePermissionsRequest
-   */
-  finalizedRequests: {
-    /**
-     * @param {Array<string>} accounts - The accounts for the eth_accounts permission caveat
-     * @returns {Object} A finalized permissions request object with eth_accounts and its caveat
-     */
-    eth_accounts: (accounts) => {
-      return {
-        eth_accounts: {
-          caveats: CAVEATS.eth_accounts(accounts),
-        },
-      };
-    },
-
-    /**
-     * @returns {Object} A finalized permissions request object with test_method
-     */
-    test_method: () => {
-      return {
-        test_method: {},
-      };
     },
   },
 
@@ -176,186 +125,7 @@ const PERMS = {
  * caveats, errors, permissions requests etc.
  */
 export const getters = deepFreeze({
-  CAVEATS,
-
   PERMS,
-
-  /**
-   * Getters for errors by the method or workflow that throws them.
-   */
-  ERRORS: {
-    validatePermittedAccounts: {
-      invalidParam: () => {
-        return {
-          name: 'Error',
-          message: 'Must provide non-empty array of account(s).',
-        };
-      },
-
-      nonKeyringAccount: (account) => {
-        return {
-          name: 'Error',
-          message: `Unknown account: ${account}`,
-        };
-      },
-    },
-
-    finalizePermissionsRequest: {
-      grantEthAcountsFailure: (origin) => {
-        return {
-          // name: 'EthereumRpcError',
-          message: `Failed to add 'eth_accounts' to '${origin}'.`,
-          code: errorCodes.rpc.internal,
-        };
-      },
-    },
-
-    addPermittedAccount: {
-      alreadyPermitted: () => {
-        return {
-          message: 'Account is already permitted for origin',
-        };
-      },
-      invalidOrigin: () => {
-        return {
-          message: 'Unrecognized domain',
-        };
-      },
-      noEthAccountsPermission: () => {
-        return {
-          message: `Origin does not have 'eth_accounts' permission`,
-        };
-      },
-    },
-
-    removePermittedAccount: {
-      notPermitted: () => {
-        return {
-          message: 'Account is not permitted for origin',
-        };
-      },
-      invalidOrigin: () => {
-        return {
-          message: 'Unrecognized domain',
-        };
-      },
-      noEthAccountsPermission: () => {
-        return {
-          message: `Origin does not have 'eth_accounts' permission`,
-        };
-      },
-    },
-
-    _handleAccountSelected: {
-      invalidParams: () => {
-        return {
-          name: 'Error',
-          message: 'Selected account should be a non-empty string.',
-        };
-      },
-    },
-
-    approvePermissionsRequest: {
-      noPermsRequested: () => {
-        return {
-          message: 'Must request at least one permission.',
-        };
-      },
-    },
-
-    rejectPermissionsRequest: {
-      rejection: () => {
-        return {
-          message: ethErrors.provider.userRejectedRequest().message,
-        };
-      },
-      methodNotFound: (methodName) => {
-        return {
-          message: `The method '${methodName}' does not exist / is not available.`,
-        };
-      },
-    },
-
-    createMiddleware: {
-      badOrigin: () => {
-        return {
-          message: 'Must provide non-empty string origin.',
-        };
-      },
-    },
-
-    rpcCap: {
-      unauthorized: () => {
-        return {
-          code: 4100,
-        };
-      },
-    },
-
-    pendingApprovals: {
-      duplicateOriginOrId: (id, origin) => {
-        return {
-          message: `Pending approval with id '${id}' or origin '${origin}' already exists.`,
-        };
-      },
-      requestAlreadyPending: (origin) => {
-        return {
-          message: `Request of type 'wallet_requestPermissions' already pending for origin ${origin}. Please wait.`,
-        };
-      },
-    },
-
-    eth_requestAccounts: {
-      requestAlreadyPending: () => {
-        return {
-          message: 'Already processing eth_requestAccounts. Please wait.',
-        };
-      },
-    },
-
-    notifyAccountsChanged: {
-      invalidOrigin: (origin) => {
-        return {
-          message: `Invalid origin: '${origin}'`,
-        };
-      },
-      invalidAccounts: () => {
-        return {
-          message: 'Invalid accounts',
-        };
-      },
-    },
-  },
-
-  /**
-   * Getters for notifications produced by the permissions controller.
-   */
-  NOTIFICATIONS: {
-    /**
-     * Gets a removed accounts notification.
-     *
-     * @returns {Object} An accountsChanged notification with an empty array as its result
-     */
-    removedAccounts: () => {
-      return {
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
-      };
-    },
-
-    /**
-     * Gets a new accounts notification.
-     *
-     * @param {Array<string>} accounts - The accounts added to the notification.
-     * @returns {Object} An accountsChanged notification with the given accounts as its result
-     */
-    newAccounts: (accounts) => {
-      return {
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: accounts,
-      };
-    },
-  },
 
   /**
    * Getters for mock RPC request objects.
@@ -482,25 +252,19 @@ export const getters = deepFreeze({
  * Objects with immutable mock values.
  */
 export const constants = deepFreeze({
-  ALL_ACCOUNTS: keyringAccounts,
-
-  DUMMY_ACCOUNT: '0xabc',
-
-  EXTRA_ACCOUNT: keyringAccounts[3],
-
   REQUEST_IDS: {
     a: '1',
     b: '2',
     c: '3',
   },
 
-  DOMAINS: { ...DOMAINS },
+  SUBJECTS: { ...SUBJECTS },
 
   ACCOUNTS: { ...ACCOUNTS },
 
   PERM_NAMES: { ...PERM_NAMES },
 
-  RESTRICTED_METHODS: ['eth_accounts', 'test_method'],
+  RESTRICTED_METHODS: new Set(['eth_accounts', 'test_method']),
 
   /**
    * Mock permissions history objects.
@@ -508,7 +272,7 @@ export const constants = deepFreeze({
   EXPECTED_HISTORIES: {
     case1: [
       {
-        [DOMAINS.a.origin]: {
+        [SUBJECTS.a.origin]: {
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 1,
             accounts: {
@@ -520,7 +284,7 @@ export const constants = deepFreeze({
         },
       },
       {
-        [DOMAINS.a.origin]: {
+        [SUBJECTS.a.origin]: {
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 2,
             accounts: {
@@ -535,7 +299,7 @@ export const constants = deepFreeze({
 
     case2: [
       {
-        [DOMAINS.a.origin]: {
+        [SUBJECTS.a.origin]: {
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 1,
             accounts: {},
@@ -546,10 +310,10 @@ export const constants = deepFreeze({
 
     case3: [
       {
-        [DOMAINS.a.origin]: {
+        [SUBJECTS.a.origin]: {
           [PERM_NAMES.test_method]: { lastApproved: 1 },
         },
-        [DOMAINS.b.origin]: {
+        [SUBJECTS.b.origin]: {
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 1,
             accounts: {
@@ -557,7 +321,7 @@ export const constants = deepFreeze({
             },
           },
         },
-        [DOMAINS.c.origin]: {
+        [SUBJECTS.c.origin]: {
           [PERM_NAMES.test_method]: { lastApproved: 1 },
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 1,
@@ -568,10 +332,10 @@ export const constants = deepFreeze({
         },
       },
       {
-        [DOMAINS.a.origin]: {
+        [SUBJECTS.a.origin]: {
           [PERM_NAMES.test_method]: { lastApproved: 2 },
         },
-        [DOMAINS.b.origin]: {
+        [SUBJECTS.b.origin]: {
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 1,
             accounts: {
@@ -579,7 +343,7 @@ export const constants = deepFreeze({
             },
           },
         },
-        [DOMAINS.c.origin]: {
+        [SUBJECTS.c.origin]: {
           [PERM_NAMES.test_method]: { lastApproved: 1 },
           [PERM_NAMES.eth_accounts]: {
             lastApproved: 2,
@@ -594,7 +358,7 @@ export const constants = deepFreeze({
 
     case4: [
       {
-        [DOMAINS.a.origin]: {
+        [SUBJECTS.a.origin]: {
           [PERM_NAMES.test_method]: {
             lastApproved: 1,
           },

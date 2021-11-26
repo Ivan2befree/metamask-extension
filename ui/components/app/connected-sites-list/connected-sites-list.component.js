@@ -18,7 +18,6 @@ export default class ConnectedSitesList extends Component {
       }),
     ).isRequired,
     onDisconnect: PropTypes.func.isRequired,
-    subjectHostCount: PropTypes.objectOf(PropTypes.number).isRequired,
   };
 
   render() {
@@ -57,8 +56,6 @@ export default class ConnectedSitesList extends Component {
       return this.context.t('externalExtension');
     }
 
-    return this.props.subjectHostCount[subject.host] > 1
-      ? subject.origin
-      : stripHttpSchemes(subject.origin);
+    return stripHttpSchemes(subject.origin);
   }
 }

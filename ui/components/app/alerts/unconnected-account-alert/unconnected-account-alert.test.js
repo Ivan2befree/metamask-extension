@@ -65,7 +65,7 @@ describe('Unconnected Account Alert', () => {
       provider: {
         chainId: KOVAN_CHAIN_ID,
       },
-      permissionsHistory: {
+      permissionHistory: {
         'https://test.dapp': {
           eth_accounts: {
             accounts: {

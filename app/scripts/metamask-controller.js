@@ -87,7 +87,7 @@ import PersonalMessageManager from './lib/personal-message-manager';
 import TypedMessageManager from './lib/typed-message-manager';
 import TransactionController from './controllers/transactions';
 import DetectTokensController from './controllers/detect-tokens';
-import PermissionsLogController from './controllers/permissions/permissionsLog';
+import PermissionLogController from './controllers/permissions/permission-log';
 import SwapsController from './controllers/swaps';
 import { NOTIFICATION_NAMES } from './controllers/permissions/enums';
 import nodeify from './lib/nodeify';
@@ -498,8 +498,9 @@ export default class MetamaskController extends EventEmitter {
       unrestrictedMethods,
     });
 
-    this.permissionLogController = new PermissionsLogController({
-      restrictedMethods: Object.keys(RestrictedMethods),
+    this.permissionLogController = new PermissionLogController({
+      restrictedMethods: new Set(Object.keys(RestrictedMethods)),
+      initState: initState.PermissionLogController,
     });
 
     /**
@@ -723,8 +724,8 @@ export default class MetamaskController extends EventEmitter {
       OnboardingController: this.onboardingController.store,
       IncomingTransactionsController: this.incomingTransactionsController.store,
       PermissionController: this.permissionController,
-      PermissionLog: this.permissionLogController.store,
-      PermissionMetadata: this.subjectMetadataController,
+      PermissionLogController: this.permissionLogController.store,
+      SubjectMetadataController: this.subjectMetadataController,
       ThreeBoxController: this.threeBoxController.store,
       NotificationController: this.notificationController,
       GasFeeController: this.gasFeeController,
@@ -756,8 +757,8 @@ export default class MetamaskController extends EventEmitter {
         IncomingTransactionsController: this.incomingTransactionsController
           .store,
         PermissionController: this.permissionController,
-        PermissionLog: this.permissionLogController.store,
-        PermissionMetadata: this.subjectMetadataController,
+        PermissionLogController: this.permissionLogController.store,
+        SubjectMetadataController: this.subjectMetadataController,
         ThreeBoxController: this.threeBoxController.store,
         SwapsController: this.swapsController.store,
         EnsController: this.ensController.store,

@@ -196,12 +196,12 @@ export function getAccountToConnectToActiveTab(state) {
 export function getOrderedConnectedAccountsForActiveTab(state) {
   const {
     activeTab,
-    metamask: { permissionsHistory },
+    metamask: { permissionHistory },
   } = state;
 
-  const permissionsHistoryByAccount =
+  const permissionHistoryByAccount =
     // eslint-disable-next-line camelcase
-    permissionsHistory[activeTab.origin]?.eth_accounts?.accounts;
+    permissionHistory[activeTab.origin]?.eth_accounts?.accounts;
   const orderedAccounts = getMetaMaskAccountsOrdered(state);
   const connectedAccounts = getPermittedAccountsForCurrentTab(state);
 
@@ -209,7 +209,7 @@ export function getOrderedConnectedAccountsForActiveTab(state) {
     .filter((account) => connectedAccounts.includes(account.address))
     .map((account) => ({
       ...account,
-      lastActive: permissionsHistoryByAccount?.[account.address],
+      lastActive: permissionHistoryByAccount?.[account.address],
     }))
     .sort(
       ({ lastSelected: lastSelectedA }, { lastSelected: lastSelectedB }) => {
@@ -249,31 +249,15 @@ export function activeTabHasPermissions(state) {
 }
 
 export function getLastConnectedInfo(state) {
-  const { permissionsHistory = {} } = state.metamask;
-  return Object.keys(permissionsHistory).reduce((acc, origin) => {
+  const { permissionHistory = {} } = state.metamask;
+  return Object.keys(permissionHistory).reduce((acc, origin) => {
     const ethAccountsHistory = JSON.parse(
-      JSON.stringify(permissionsHistory[origin].eth_accounts),
+      JSON.stringify(permissionHistory[origin].eth_accounts),
     );
     return {
       ...acc,
       [origin]: ethAccountsHistory,
     };
-  }, {});
-}
-
-export function getPermissionsMetadataHostCounts(state) {
-  const metadata = getPermissionSubjectsMetadata(state);
-  // TODO:permissions: The "host" will probably be undefined for snaps.
-  // We should reformat the origin value in the appropriate component.
-  return Object.values(metadata).reduce((counts, { host }) => {
-    if (host) {
-      if (counts[host]) {
-        counts[host] += 1;
-      } else {
-        counts[host] = 1;
-      }
-    }
-    return counts;
   }, {});
 }
 

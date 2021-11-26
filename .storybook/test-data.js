@@ -1034,7 +1034,7 @@ const state = {
         },
       },
     },
-    permissionsLog: [
+    permissionActivityLog: [
       {
         id: 522690215,
         method: 'eth_accounts',
@@ -1165,7 +1165,7 @@ const state = {
         success: true,
       },
     ],
-    permissionsHistory: {
+    permissionHistory: {
       'https://metamask.github.io': {
         eth_accounts: {
           lastApproved: 1620710693213,
