@@ -102,36 +102,30 @@ export const getPermissionSpecifications = ({
       },
 
       methodImplementation: async (_args) => {
-        try {
-          const accounts = await getKeyringAccounts();
-          const identities = getIdentities();
+        const accounts = await getKeyringAccounts();
+        const identities = getIdentities();
 
-          return accounts.sort((firstAddress, secondAddress) => {
-            if (!identities[firstAddress]) {
-              throw new Error(`Missing identity for address ${firstAddress}`);
-            } else if (!identities[secondAddress]) {
-              throw new Error(`Missing identity for address ${secondAddress}`);
-            } else if (
-              identities[firstAddress].lastSelected ===
-              identities[secondAddress].lastSelected
-            ) {
-              return 0;
-            } else if (identities[firstAddress].lastSelected === undefined) {
-              return 1;
-            } else if (identities[secondAddress].lastSelected === undefined) {
-              return -1;
-            }
+        return accounts.sort((firstAddress, secondAddress) => {
+          if (!identities[firstAddress]) {
+            throw new Error(`Missing identity for address ${firstAddress}`);
+          } else if (!identities[secondAddress]) {
+            throw new Error(`Missing identity for address ${secondAddress}`);
+          } else if (
+            identities[firstAddress].lastSelected ===
+            identities[secondAddress].lastSelected
+          ) {
+            return 0;
+          } else if (identities[firstAddress].lastSelected === undefined) {
+            return 1;
+          } else if (identities[secondAddress].lastSelected === undefined) {
+            return -1;
+          }
 
-            return (
-              identities[secondAddress].lastSelected -
-              identities[firstAddress].lastSelected
-            );
-          });
-        } catch (error) {
-          // TODO:permissions What should we do with this error?
-          console.error(error);
-          return [];
-        }
+          return (
+            identities[secondAddress].lastSelected -
+            identities[firstAddress].lastSelected
+          );
+        });
       },
 
       validator: (permission, _origin, _target) => {

@@ -119,6 +119,7 @@ function getExpectedPermissionControllerState() {
   return {
     subjects: {
       'https://faucet.metamask.io': {
+        origin: 'https://faucet.metamask.io',
         permissions: {
           eth_accounts: {
             caveats: [
@@ -135,6 +136,7 @@ function getExpectedPermissionControllerState() {
         },
       },
       'https://metamask.github.io': {
+        origin: 'https://metamask.github.io',
         permissions: {
           eth_accounts: {
             caveats: [
@@ -151,6 +153,7 @@ function getExpectedPermissionControllerState() {
         },
       },
       'https://xdai.io': {
+        origin: 'https://xdai.io',
         permissions: {
           eth_accounts: {
             caveats: [

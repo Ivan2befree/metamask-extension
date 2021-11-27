@@ -97,6 +97,7 @@ function getPermissionControllerState(PermissionsController) {
       delete newPermission['@context'];
 
       transformed[origin] = {
+        origin,
         permissions: {
           [ETH_ACCOUNTS]: newPermission,
         },
