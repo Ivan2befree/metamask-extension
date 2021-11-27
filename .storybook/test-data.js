@@ -1013,8 +1013,6 @@ const state = {
       goerli: null,
       mainnet: 10902989,
     },
-    permissionsRequests: [],
-    permissionsDescriptions: {},
     subjects: {
       'https://app.uniswap.org': {
         permissions: {

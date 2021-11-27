@@ -63,7 +63,7 @@
       "onboardingTabs": {},
       "seedPhraseBackedUp": false
     },
-    "SubjectMetadata": {
+    "PermissionLogController": {
       "permissionActivityLog": [
         {
           "id": 1764280960,
@@ -96,7 +96,9 @@
             "lastApproved": 1594348332276
           }
         }
-      },
+      }
+    },
+    "SubjectMetadataController": {
       "subjectMetadata": {
         "http://127.0.0.1:8080": {
           "name": "E2E Test Dapp",

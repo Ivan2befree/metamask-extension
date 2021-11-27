@@ -77,7 +77,7 @@
       "onboardingTabs": {},
       "seedPhraseBackedUp": true
     },
-    "PermissionsController": {
+    "PermissionController": {
       "subjects": {}
     },
     "PreferencesController": {
