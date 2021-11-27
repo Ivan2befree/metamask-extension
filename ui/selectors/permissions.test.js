@@ -13,14 +13,12 @@ describe('selectors', () => {
           selectedAddress: '0x8e5d75d60224ea0c33d0041e75de68b1c3cb6dd5',
           subjectMetadata: {
             'peepeth.com': {
-              icon: 'https://peepeth.com/favicon-32x32.png',
+              iconUrl: 'https://peepeth.com/favicon-32x32.png',
               name: 'Peepeth',
-              host: 'peepeth.com',
             },
             'https://remix.ethereum.org': {
-              icon: 'https://remix.ethereum.org/icon.png',
+              iconUrl: 'https://remix.ethereum.org/icon.png',
               name: 'Remix - Ethereum IDE',
-              host: 'remix.ethereum.org',
             },
           },
           subjects: {
@@ -65,17 +63,15 @@ describe('selectors', () => {
       expect(getConnectedSubjectsForSelectedAddress(mockState)).toStrictEqual([
         {
           extensionId,
-          icon: 'https://peepeth.com/favicon-32x32.png',
+          iconUrl: 'https://peepeth.com/favicon-32x32.png',
           origin: 'peepeth.com',
           name: 'Peepeth',
-          host: 'peepeth.com',
         },
         {
           extensionId,
           name: 'Remix - Ethereum IDE',
-          icon: 'https://remix.ethereum.org/icon.png',
+          iconUrl: 'https://remix.ethereum.org/icon.png',
           origin: 'https://remix.ethereum.org',
-          host: 'remix.ethereum.org',
         },
       ]);
     });
@@ -86,14 +82,12 @@ describe('selectors', () => {
           selectedAddress: '0x7250739de134d33ec7ab1ee592711e15098c9d2d',
           subjectMetadata: {
             'peepeth.com': {
-              icon: 'https://peepeth.com/favicon-32x32.png',
+              iconUrl: 'https://peepeth.com/favicon-32x32.png',
               name: 'Peepeth',
-              host: 'peepeth.com',
             },
             'https://remix.ethereum.org': {
-              icon: 'https://remix.ethereum.org/icon.png',
+              iconUrl: 'https://remix.ethereum.org/icon.png',
               name: 'Remix - Ethereum IDE',
-              host: 'remix.ethereum.com',
             },
           },
           subjects: {
@@ -142,9 +136,8 @@ describe('selectors', () => {
         {
           extensionId,
           name: 'Remix - Ethereum IDE',
-          icon: 'https://remix.ethereum.org/icon.png',
+          iconUrl: 'https://remix.ethereum.org/icon.png',
           origin: 'https://remix.ethereum.org',
-          host: 'remix.ethereum.com',
         },
       ]);
     });
@@ -390,7 +383,7 @@ describe('selectors', () => {
         },
         subjectMetadata: {
           'https://remix.ethereum.org': {
-            icon: 'https://remix.ethereum.org/icon.png',
+            iconUrl: 'https://remix.ethereum.org/icon.png',
             name: 'Remix - Ethereum IDE',
           },
         },

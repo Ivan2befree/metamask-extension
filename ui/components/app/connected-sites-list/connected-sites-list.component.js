@@ -12,7 +12,7 @@ export default class ConnectedSitesList extends Component {
     connectedSubjects: PropTypes.arrayOf(
       PropTypes.shape({
         name: PropTypes.string,
-        icon: PropTypes.string,
+        iconUrl: PropTypes.string,
         origin: PropTypes.string,
         host: PropTypes.string,
       }),
@@ -32,7 +32,7 @@ export default class ConnectedSitesList extends Component {
             className="connected-sites-list__content-row"
           >
             <div className="connected-sites-list__subject-info">
-              <SiteIcon icon={subject.icon} name={subject.name} size={32} />
+              <SiteIcon icon={subject.iconUrl} name={subject.name} size={32} />
               <span
                 className="connected-sites-list__subject-name"
                 title={subject.extensionId || subject.origin}

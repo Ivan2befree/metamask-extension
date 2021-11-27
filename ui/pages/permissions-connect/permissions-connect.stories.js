@@ -23,8 +23,7 @@ export const ChooseAccountComponent = () => {
       }
       targetSubjectMetadata={{
         host: 'gnosis-safe.io',
-        icon: './gnosis.svg',
-        lastUpdated: 1627423550860,
+        iconUrl: './gnosis.svg',
         name: 'Gnosis - Manage Digital Assets',
         origin: 'https://gnosis-safe.io',
       }}
@@ -59,8 +58,7 @@ export const PermissionPageContainerComponent = () => {
         subjectMetadata={{
           extensionId: '1',
           host: 'gnosis-safe.io',
-          icon: './gnosis.svg',
-          lastUpdated: 1627423550860,
+          iconUrl: './gnosis.svg',
           name: 'Gnosis - Manage Digital Assets',
           origin: 'https://gnosis-safe.io',
         }}

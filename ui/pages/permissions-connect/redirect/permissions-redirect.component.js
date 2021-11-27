@@ -12,7 +12,7 @@ export default function PermissionsRedirect({ subjectMetadata }) {
         {t('connecting')}
         <div className="permissions-redirect__icons">
           <SiteIcon
-            icon={subjectMetadata.icon}
+            icon={subjectMetadata.iconUrl}
             name={subjectMetadata.name}
             size={64}
           />
@@ -49,7 +49,7 @@ export default function PermissionsRedirect({ subjectMetadata }) {
 PermissionsRedirect.propTypes = {
   subjectMetadata: PropTypes.shape({
     extensionId: PropTypes.string,
-    icon: PropTypes.string,
+    iconUrl: PropTypes.string,
     host: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     origin: PropTypes.string.isRequired,

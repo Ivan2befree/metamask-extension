@@ -92,14 +92,13 @@ export function getConnectedSubjectsForSelectedAddress(state) {
       return;
     }
 
-    const { extensionId, name, icon, host } = subjectMetadata[subjectKey] || {};
+    const { extensionId, name, iconUrl } = subjectMetadata[subjectKey] || {};
 
     connectedSubjects.push({
       extensionId,
       origin: subjectKey,
       name,
-      icon,
-      host,
+      iconUrl,
     });
   });
 
@@ -109,7 +108,7 @@ export function getConnectedSubjectsForSelectedAddress(state) {
 /**
  * Returns an object mapping addresses to objects mapping origins to connected
  * subject info. Subject info objects have the following properties:
- * - icon
+ * - iconUrl
  * - name
  *
  * @param {Object} state - The current state.
@@ -122,7 +121,7 @@ export function getAddressConnectedSubjectMap(state) {
   const addressConnectedIconMap = {};
 
   Object.keys(accountsMap).forEach((subjectKey) => {
-    const { icon, name } = subjectMetadata[subjectKey] || {};
+    const { iconUrl, name } = subjectMetadata[subjectKey] || {};
 
     accountsMap[subjectKey].forEach((address) => {
       const nameToRender = name || subjectKey;
@@ -130,9 +129,9 @@ export function getAddressConnectedSubjectMap(state) {
       addressConnectedIconMap[address] = addressConnectedIconMap[address]
         ? {
             ...addressConnectedIconMap[address],
-            [subjectKey]: { icon, name: nameToRender },
+            [subjectKey]: { iconUrl, name: nameToRender },
           }
-        : { [subjectKey]: { icon, name: nameToRender } };
+        : { [subjectKey]: { iconUrl, name: nameToRender } };
     });
   });
 

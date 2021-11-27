@@ -45,7 +45,7 @@ const PageSet = ({ children }) => {
         getNewState(state.metamask, {
           subjectMetadata: {
             [origin]: {
-              icon: subjectIconUrl,
+              iconUrl: subjectIconUrl,
             },
           },
         }),

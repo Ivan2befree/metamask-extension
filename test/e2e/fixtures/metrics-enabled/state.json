@@ -102,9 +102,7 @@
       "subjectMetadata": {
         "http://127.0.0.1:8080": {
           "name": "E2E Test Dapp",
-          "icon": "http://127.0.0.1:8080/metamask-fox.svg",
-          "lastUpdated": 1594348323811,
-          "host": "127.0.0.1:8080"
+          "iconUrl": "http://127.0.0.1:8080/metamask-fox.svg"
         }
       }
     },
@@ -152,26 +150,7 @@
       "version": "7.7.0"
     },
     "PermissionController": {
-      "subjects": {
-        "http://127.0.0.1:8080": {
-          "origin": "http://127.0.0.1:8080",
-          "permissions": {
-            "eth_accounts": {
-              "@context": ["https://github.com/MetaMask/rpc-cap"],
-              "parentCapability": "eth_accounts",
-              "id": "f55a1c15-ea48-4088-968e-63be474d42fa",
-              "date": 1594348332268,
-              "invoker": "http://127.0.0.1:8080",
-              "caveats": [
-                {
-                  "type": "restrictReturnedAccounts",
-                  "value": ["0x5cfe73b6021e818b776b421b1c4db2474086a7e1"]
-                }
-              ]
-            }
-          }
-        }
-      }
+      "subjects": {}
     }
   },
   "meta": {

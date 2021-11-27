@@ -146,7 +146,7 @@ export default function ConfirmApprove() {
   const { origin } = transaction;
   const formattedOrigin = origin || '';
 
-  const { icon: siteImage = '' } = subjectMetadata[origin] || {};
+  const { iconUrl: siteImage = '' } = subjectMetadata[origin] || {};
 
   const tokensText = `${Number(tokenAmount)} ${tokenSymbol}`;
   const tokenBalance = tokenTrackerBalance

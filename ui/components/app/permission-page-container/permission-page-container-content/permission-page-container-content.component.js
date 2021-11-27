@@ -8,8 +8,7 @@ export default class PermissionPageContainerContent extends PureComponent {
   static propTypes = {
     subjectMetadata: PropTypes.shape({
       extensionId: PropTypes.string,
-      icon: PropTypes.string,
-      host: PropTypes.string.isRequired,
+      iconUrl: PropTypes.string,
       name: PropTypes.string.isRequired,
       origin: PropTypes.string.isRequired,
     }),
@@ -133,7 +132,7 @@ export default class PermissionPageContainerContent extends PureComponent {
       <div className="permission-approval-container__content">
         <div className="permission-approval-container__content-container">
           <PermissionsConnectHeader
-            icon={subjectMetadata.icon}
+            icon={subjectMetadata.iconUrl}
             iconName={subjectMetadata.name}
             headerTitle={title}
             headerText={

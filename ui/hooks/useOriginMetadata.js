@@ -6,9 +6,7 @@ import { getSubjectMetadata } from '../selectors';
  * @property {string} host - The host of the origin
  * @property {string} hostname - The hostname of the origin (host + port)
  * @property {string} origin - The original origin string itself
- * @property {string} [icon] - The origin's site icon if available
- * @property {number} [lastUpdated] - Timestamp of the last update to the
- *  origin's metadata
+ * @property {string} [iconUrl] - The origin's site icon URL, if available
  * @property {string} [name] - The registered name of the origin if available
  */
 

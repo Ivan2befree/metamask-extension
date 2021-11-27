@@ -60,8 +60,10 @@
       }
     },
     "OnboardingController": {
+      "completedOnboarding": true,
+      "firstTimeFlowType": "import",
       "onboardingTabs": {},
-      "seedPhraseBackedUp": false
+      "seedPhraseBackedUp": true
     },
     "PermissionLogController": {
       "permissionActivityLog": [
@@ -102,54 +104,53 @@
       "subjectMetadata": {
         "http://127.0.0.1:8080": {
           "name": "E2E Test Dapp",
-          "icon": "http://127.0.0.1:8080/metamask-fox.svg",
-          "lastUpdated": 1594348323811,
-          "host": "127.0.0.1:8080"
+          "iconUrl": "http://127.0.0.1:8080/metamask-fox.svg"
         }
       }
     },
     "PreferencesController": {
-      "frequentRpcListDetail": [],
-      "accountTokens": {
-        "0x5cfe73b6021e818b776b421b1c4db2474086a7e1": {
-          "rinkeby": [],
-          "ropsten": []
-        }
-      },
-      "assetImages": {},
-      "tokens": [],
-      "suggestedTokens": {},
-      "useBlockie": false,
-      "useNonceField": false,
-      "usePhishDetect": true,
-      "featureFlags": {
-        "showIncomingTransactions": true,
-        "transactionTime": false
-      },
-      "knownMethodData": {},
-      "participateInMetaMetrics": false,
-      "firstTimeFlowType": "create",
       "currentLocale": "en",
+      "dismissSeedBackUpReminder": true,
+      "featureFlags": {
+        "showIncomingTransactions": true
+      },
+      "forgottenPassword": false,
+      "frequentRpcListDetail": [
+        {
+          "chainId": "0x539",
+          "nickname": "Localhost 8545",
+          "rpcPrefs": {},
+          "rpcUrl": "http://localhost:8545",
+          "ticker": "ETH"
+        }
+      ],
       "identities": {
         "0x5cfe73b6021e818b776b421b1c4db2474086a7e1": {
           "address": "0x5cfe73b6021e818b776b421b1c4db2474086a7e1",
+          "lastSelected": 1626907346643,
           "name": "Account 1"
         }
       },
+      "infuraBlocked": false,
+      "ipfsGateway": "dweb.link",
+      "knownMethodData": {},
       "lostIdentities": {},
-      "forgottenPassword": false,
       "preferences": {
+        "hideZeroBalanceTokens": false,
+        "showFiatInTestnets": false,
         "useNativeCurrencyAsPrimaryCurrency": true
       },
-      "completedOnboarding": true,
-      "metaMetricsId": null,
-      "ipfsGateway": "dweb.link",
-      "selectedAddress": "0x5cfe73b6021e818b776b421b1c4db2474086a7e1"
+      "selectedAddress": "0x5cfe73b6021e818b776b421b1c4db2474086a7e1",
+      "useBlockie": false,
+      "useLedgerLive": false,
+      "useNonceField": false,
+      "usePhishDetect": true,
+      "useStaticTokenList": false
     },
     "config": {},
     "firstTimeInfo": {
       "date": 1575697234195,
-      "version": "7.7.0"
+      "version": "10.4.0"
     },
     "PermissionController": {
       "subjects": {
