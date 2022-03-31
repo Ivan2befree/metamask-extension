@@ -311,7 +311,7 @@
     "lavamoat-viz": "^6.0.9",
     "lockfile-lint": "^4.0.0",
     "loose-envify": "^1.4.0",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "mocha": "^7.2.0",
     "nock": "^9.0.14",
     "node-fetch": "^2.6.1",
